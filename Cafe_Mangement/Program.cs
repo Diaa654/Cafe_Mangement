@@ -15,8 +15,6 @@ namespace Cafe_Management
         {
             var builder = WebApplication.CreateBuilder(args);
 
-             
-
             #region Add services to the container.
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
