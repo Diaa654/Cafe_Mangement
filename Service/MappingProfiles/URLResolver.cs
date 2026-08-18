@@ -8,15 +8,21 @@ using System.Threading.Tasks;
 
 namespace Service.MappingProfiles
 {
-    public class URLResolver<TSourse, TDestination>(IConfiguration _configuration) : IMemberValueResolver<TSourse, TDestination, string?, string?>
-    {
-        public string Resolve(TSourse source, TDestination destination, string SrcMember, string destMember, ResolutionContext context)
-        {
-            if (string.IsNullOrWhiteSpace(SrcMember))
-                return string.Empty;
+    using AutoMapper;
+    using Microsoft.Extensions.Configuration;
 
+    public class URLResolver<TSource, TDestination>(IConfiguration _configuration)
+        : IMemberValueResolver<TSource, TDestination, string?, string?>
+    {
+        public string? Resolve(TSource source, TDestination destination, string? sourceMember, string? destMember, ResolutionContext context)
+        {
+            
+            if (string.IsNullOrWhiteSpace(sourceMember))
+                return string.Empty;
             var baseUrl = _configuration.GetSection("Urls")["BaseUrl"];
-            return $"{baseUrl}{SrcMember}";
+
+            
+            return $"{baseUrl?.TrimEnd('/')}/{sourceMember.TrimStart('/')}";
         }
     }
 }
