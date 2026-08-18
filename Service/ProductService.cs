@@ -3,6 +3,7 @@ using Domain.Contracts;
 using Domain.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using Service.Specifications;
 using ServiceAbstraction;
 using Shared.CommonResult;
 using Shared.DTOS;
@@ -54,34 +55,212 @@ namespace Service
             }
         }
 
-        public Task<Result> DeleteAsync(int ProductId)
+        public async Task<Result> DeleteAsync(int ProductId)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var repository = _unitOfWork.GetRepository<Product, int>();
+
+               
+                var product = await repository.GetByIdAsync(ProductId);
+                if (product == null)
+                    return Error.NotFound("غير_موجود", "المنتج المطلوب حذفه غير موجود.");
+
+                repository.Remove(product);
+                await _unitOfWork.SaveChangesAsync();
+                if (!string.IsNullOrEmpty(product.ImageUrl))
+                {
+                    await _fileService.DeleteAsync(product.ImageUrl);
+                }
+
+                return Result.Ok();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error while deleting product with ID {ProductId}...");
+                return Error.Failure("فشل_النظام", "حدث خطأ أثناء حذف المنتج. قد يكون مرتبطاً بطلبات سابقة.");
+            }
         }
 
-        public Task<Result<IEnumerable<GetAllProductDTO>>> GetProductsByCategoryAsync(int categoryId)
+        public async Task<Result<IEnumerable<GetAllProductDTO>>> GetProductsByCategoryAsync(int categoryId)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var repository = _unitOfWork.GetRepository<Product, int>();
+
+                var sp=new ProductSpecification(categoryId);
+                var allProducts = await repository.GetAllAsync(sp);
+                var dtos = _mapper.Map<IEnumerable<GetAllProductDTO>>(allProducts);
+
+                return Result<IEnumerable<GetAllProductDTO>>.Ok(dtos);
+            }
+            catch (Exception ex)
+            {
+               
+                _logger.LogError(ex, $"Error while getting products for category {categoryId}...");
+                return Error.Failure("فشل_النظام", "حدث خطأ أثناء جلب منتجات القسم المطلوب.");
+            }
         }
 
-        public Task<Result> ToggleAvailabilityAsync(int productId)
+        public async Task<Result> UpdateAvailabilityAsync(int productId, bool isAvailable)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var repository = _unitOfWork.GetRepository<Product, int>();
+
+                var product = await repository.GetByIdAsync(productId);
+                if (product == null)
+                    return Error.NotFound("غير_موجود", "المنتج المطلوب غير موجود في النظام.");
+                product.IsAvailable = isAvailable;
+
+                repository.Update(product);
+                await _unitOfWork.SaveChangesAsync();
+
+                return Result.Ok();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error updating availability for product {productId} to {isAvailable}...");
+                return Error.Failure("فشل_النظام", "حدث خطأ أثناء تغيير حالة توفر المنتج.");
+            }
         }
 
-        public Task<Result> UpdateAsync(int ProductId, UpdateProductDto dto)
+        public async Task<Result> UpdateAsync(int ProductId, UpdateProductDto dto)
         {
-            throw new NotImplementedException();
+            if (dto == null || string.IsNullOrWhiteSpace(dto.Name) || dto.Price <= 0)
+                return Error.Validation("بيانات_غير_صالحة", "تأكد من إدخال اسم المنتج بشكل صحيح وأن السعر أكبر من صفر.");
+
+            try
+            {
+                var repository = _unitOfWork.GetRepository<Product, int>();
+              
+                var product = await repository.GetByIdAsync(ProductId);
+
+                if (product == null)
+                    return Error.NotFound("غير_موجود", "المنتج المطلوب تعديله غير موجود في النظام.");
+                
+                product.Name = dto.Name;
+                product.Price = dto.Price;
+
+                
+                repository.Update(product);
+                await _unitOfWork.SaveChangesAsync();
+
+                return Result.Ok();
+            }
+            catch (Exception ex)
+            {
+               
+                _logger.LogError(ex, $"Error while updating product with ID {ProductId}...");
+                return Error.Failure("فشل_النظام", "حدث خطأ غير متوقع أثناء تعديل بيانات المنتج.");
+            }
         }
 
-        public Task<Result> UpdateDiscountAsync(int productId, decimal newDiscount)
+        public async Task<Result> UpdateDiscountAsync(int productId, decimal newDiscount)
         {
-            throw new NotImplementedException();
+            if (newDiscount < 0 || newDiscount > 100)
+                return Error.Validation("قيمة_مرفوضة", "نسبة الخصم يجب أن تكون بين 0 و 100.");
+
+            try
+            {
+                var repository = _unitOfWork.GetRepository<Product, int>();
+
+                var product = await repository.GetByIdAsync(productId);
+
+                if (product == null)
+                    return Error.NotFound("غير_موجود", "المنتج المطلوب غير موجود في النظام.");
+
+                product.Discount = newDiscount;
+
+                repository.Update(product);
+                await _unitOfWork.SaveChangesAsync();
+
+                return Result.Ok();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error updating discount for product {productId}...");
+                return Error.Failure("فشل_النظام", "حدث خطأ أثناء تعديل خصم المنتج.");
+            }
         }
 
-        public Task<Result> UpdateImageProduct(IFormFile image)
+        public async Task<Result> UpdateImageProductAsync(int productId, IFormFile image)
         {
-            throw new NotImplementedException();
+            if (image == null || image.Length == 0)
+                return Error.Validation("بيانات_غير_صالحة", "يرجى إرفاق صورة صالحة.");
+
+            string? uploadedFilePath = null;
+            string? oldFilePath = null;
+
+            async Task RevertUploadAsync()
+            {
+                if (!string.IsNullOrEmpty(uploadedFilePath))
+                {
+                    await _fileService.DeleteAsync(uploadedFilePath);
+                }
+            }
+
+            try
+            {
+                var repository = _unitOfWork.GetRepository<Product, int>();
+                var product = await repository.GetByIdAsync(productId);
+
+                if (product == null)
+                    return Error.NotFound("غير_موجود", "المنتج المطلوب تعديل صورته غير موجود.");
+
+               
+                var uploadResult = await _fileService.SaveFileAsync(image, "ProductImage");
+                if (!uploadResult.IsSuccess)
+                    return Error.Failure("حدث خطأ اثناء حفظ الصوره ", "حاول ترفع صوره اخرى ");
+
+                uploadedFilePath = uploadResult.Value;
+
+               
+                oldFilePath = product.ImageUrl;
+                product.ImageUrl = uploadedFilePath;
+
+                
+                repository.Update(product);
+                await _unitOfWork.SaveChangesAsync();
+
+          
+                if (!string.IsNullOrEmpty(oldFilePath))
+                {
+                    await _fileService.DeleteAsync(oldFilePath);
+                }
+
+                return Result.Ok();
+            }
+            catch (Exception ex)
+            {
+            
+                await RevertUploadAsync();
+
+                _logger.LogError(ex, $"Error updating image for product {productId}...");
+                return Error.Failure("خطأ_غير_متوقع", "حدث خطأ غير متوقع أثناء تحديث صورة المنتج.");
+            }
+        }
+
+        public async Task<Result<IEnumerable<GetTopProductDTO>>> GetTopProductsAsync()
+        {
+            try
+            {
+                var repository = _unitOfWork.GetRepository<Product, int>();
+
+                var sp = new ProductSpecification();
+                var allProducts = await repository.GetAllAsync(sp);
+
+
+                
+                var dtos = _mapper.Map<IEnumerable<GetTopProductDTO>>(allProducts);
+
+                return Result<IEnumerable<GetTopProductDTO>>.Ok(dtos);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while getting top selling products...");
+                return Error.Failure("فشل_النظام", "حدث خطأ أثناء جلب المنتجات الأكثر طلباً.");
+            }
         }
     }
 }
