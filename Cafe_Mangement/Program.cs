@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Persistence.Data;
 using Persistence.Data.DataSeeding;
+using Service;
+using ServiceAbstraction;
 
 namespace Cafe_Management
 {
@@ -25,6 +27,8 @@ namespace Cafe_Management
                 options.UseSqlServer(builder.Configuration.GetConnectionString("Connection"));
             });
             builder.Services.AddScoped<IDataInitializer, DataInitializer>();
+            builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
+
             builder.Services
                 .AddIdentity<User, IdentityRole<int>>()
                  .AddEntityFrameworkStores<CafeDbContext>();
