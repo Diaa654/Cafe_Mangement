@@ -8,6 +8,9 @@ namespace ServiceAbstraction
 {
     public interface IServiceManger
     {
-        
+        public ITableService TableService { get; }
+        public IProductService ProductService { get; }
+        public ICategoryService CategoryService { get; }
+     
     }
 }
