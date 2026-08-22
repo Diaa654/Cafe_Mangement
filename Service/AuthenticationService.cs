@@ -1,5 +1,7 @@
-﻿using Domain.Models;
+﻿using Domain.Contracts;
+using Domain.Models;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
@@ -18,7 +20,7 @@ using System.Threading.Tasks;
 namespace Service
 {
     public class AuthenticationService(UserManager<User> _userManager
-        , IConfiguration _configuration) : IAuthenticationService
+        , IConfiguration _configuration,IServiceManger _serviceManger) : IAuthenticationService
     {
         public async Task<Result<UserDto>> LoginAsync(LoginDto loginDto)
         {
@@ -43,6 +45,32 @@ namespace Service
                 Token = await CreateTokenAsync(user)
             };
         }
+
+        public async Task<Result<string>> SaveDeviceTokenAsync( SaveDeviceTokenDto dto)
+        {
+            if (string.IsNullOrWhiteSpace(dto.DeviceToken))
+                return Error.Failure("InvalidToken", "التوكن غير صالح أو فارغ.");
+            var user = await _userManager.FindByIdAsync(dto.UserId.ToString());
+            if (user == null)
+                return Error.Failure("UserNotFound", "المستخدم غير موجود بالأنظمة.");
+            var result = await _userManager.SetAuthenticationTokenAsync(
+                user,
+                loginProvider: "FCM",
+                tokenName: "DeviceToken",
+                tokenValue: dto.DeviceToken
+            );
+
+            if (!result.Succeeded)
+                return Error.Failure("UpdateFailed", "حدث خطأ أثناء حفظ الإعدادات.");
+            var userRole=await _userManager.GetRolesAsync(user);
+            if (userRole.Contains(AppRoles.Waiter.ToString()))
+                await _serviceManger.FcmService.SubscribeWaiterToTopicAsync(dto.DeviceToken);
+            if (userRole.Contains(AppRoles.Barista.ToString()))
+                await _serviceManger.FcmService.SubscribeBaristaToTopicAsync(dto.DeviceToken);
+
+            return Result<string>.Ok("تم حفظ التوكن بنجاح.");
+        }
+
         private async Task<string> CreateTokenAsync(User user)
         {
             var Claims = new List<Claim>

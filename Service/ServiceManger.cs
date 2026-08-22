@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
 using Domain.Contracts;
+using Domain.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using ServiceAbstraction;
@@ -11,7 +13,11 @@ using System.Threading.Tasks;
 
 namespace Service
 {
-    public class ServiceManger(IUnitOfWork _unitOfWork, IMapper _mapper, ILogger _logger,IFileService _fileService) : IServiceManger
+    public class ServiceManger(IUnitOfWork _unitOfWork, IMapper _mapper, 
+        ILogger<ServiceManger> _logger,
+        IFileService _fileService, UserManager<User> _userManager,
+        ILogger<FcmService> _loggerfcm,
+        IFcmService _fcmService,ICacheRepository _cacheRepository, IDashboardNotificationService _dashboardNotification) : IServiceManger
     {
         private readonly Lazy<ITableService> _LazyTableService = new Lazy<ITableService>(() => new TableService(_unitOfWork, _mapper, _logger));
         public ITableService TableService => _LazyTableService.Value;
@@ -21,6 +27,14 @@ namespace Service
 
         private readonly Lazy<ICategoryService> _LazyCategoryService = new Lazy<ICategoryService>(() => new CategoryService(_unitOfWork, _logger));
         public ICategoryService CategoryService => _LazyCategoryService.Value;
+        
+        private readonly Lazy<IInvoiceService> _LazyInvoiceService = new Lazy<IInvoiceService>(() => new InvoiceService(_unitOfWork, _mapper, _userManager,_cacheRepository,_dashboardNotification));
+        public IInvoiceService InvoiceService => _LazyInvoiceService.Value;
+
+        private readonly Lazy<IOrderService> _LazyOrderService = new Lazy<IOrderService>(() => new OrderService(_unitOfWork, _mapper,_fcmService,_userManager,_logger));
+        public IOrderService OrderService => _LazyOrderService.Value;
+        private readonly Lazy<IFcmService> _LazyFcmService = new Lazy<IFcmService>(() => new FcmService(_loggerfcm));
+        public IFcmService FcmService => _LazyFcmService.Value;
 
         
     }

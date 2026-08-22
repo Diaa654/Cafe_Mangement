@@ -10,11 +10,11 @@ namespace Service.Specifications
 {
     public abstract class BaseSpecifications<TEntity, TKey> : ISpecifications<TEntity, TKey> where TEntity : class
     {
-        protected BaseSpecifications(Expression<Func<TEntity, bool>> criteria)
+        protected BaseSpecifications(Expression<Func<TEntity, bool>>? criteria)
         {
             Criteria = criteria;
         }
-        public Expression<Func<TEntity, bool>> Criteria { get; }
+        public Expression<Func<TEntity, bool>>? Criteria { get; }
         #region Includes
         public ICollection<Expression<Func<TEntity, object>>> Includes { get; } = [];
         protected void AddInclude(Expression<Func<TEntity, object>> includeExpression)

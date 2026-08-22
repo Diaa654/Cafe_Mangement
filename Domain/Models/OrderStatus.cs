@@ -13,5 +13,6 @@ namespace Domain.Models
         Ready,
         Delivered,
         Completed,
+        Canceled
     }
 }
