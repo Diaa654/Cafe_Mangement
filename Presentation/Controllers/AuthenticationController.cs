@@ -17,5 +17,13 @@ namespace Presentation.Controllers
             var Result = await _authenticationService.LoginAsync(login);
             return HandleResult(Result);
         }
+        [HttpPost("SaveDeviceToken")]
+        public async Task<ActionResult<string>> SaveDeviceToken(SaveDeviceTokenDto saveDeviceTokenDto)
+        {
+            int userId=GetUserId();
+            saveDeviceTokenDto.UserId = userId;
+            var Result = await _authenticationService.SaveDeviceTokenAsync(saveDeviceTokenDto);
+            return HandleResult(Result);
+        }
     }
 }

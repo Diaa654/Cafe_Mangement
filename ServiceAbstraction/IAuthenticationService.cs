@@ -11,5 +11,6 @@ namespace ServiceAbstraction
     public interface IAuthenticationService
     {
         Task<Result<UserDto>> LoginAsync(LoginDto loginDto);
+        Task<Result<string>> SaveDeviceTokenAsync(SaveDeviceTokenDto dto);
     }
 }

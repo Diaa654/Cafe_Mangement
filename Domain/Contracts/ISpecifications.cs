@@ -9,7 +9,7 @@ namespace Domain.Contracts
 {
     public interface ISpecifications<TEntity, TKey> where TEntity : class
     {
-        public Expression<Func<TEntity, bool>> Criteria { get; }
+        public Expression<Func<TEntity, bool>>? Criteria { get; }
         public ICollection<Expression<Func<TEntity, object>>> Includes { get; }
         public ICollection<Func<IQueryable<TEntity>, IQueryable<TEntity>>> ComplexIncludes { get; }
         public Expression<Func<TEntity, object>> OrderBy { get; }
