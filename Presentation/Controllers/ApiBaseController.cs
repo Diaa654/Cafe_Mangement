@@ -13,8 +13,21 @@ namespace Presentation.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class ApiBaseController: ControllerBase
+    public abstract class ApiBaseController: ControllerBase
     {
+
+        protected int GetUserId()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim != null && int.TryParse(userIdClaim.Value, out int userId))
+            {
+                return userId;
+            }
+            //throw new UnauthorizedAccessException("غير مصرح لك بالوصول");
+            return Error.Unauthorized().Type == ErrorType.Unauthorized ? throw new UnauthorizedAccessException("غير مصرح لك بالوصول") : 0;
+        }
+
+
         protected IActionResult HandleResult(Result result)
         {
             if (result.IsSuccess)

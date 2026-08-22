@@ -11,6 +11,8 @@ namespace ServiceAbstraction
         public ITableService TableService { get; }
         public IProductService ProductService { get; }
         public ICategoryService CategoryService { get; }
-     
+        public IInvoiceService InvoiceService { get; }
+        public IOrderService OrderService { get; }
+        public IFcmService FcmService { get; }
     }
 }
