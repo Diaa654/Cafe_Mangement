@@ -16,6 +16,6 @@ namespace Domain.Models
         public decimal Discount { get; set; } = 0;
         public Order Order { get; set; } = default!;
         public Product Product { get; set; } = default!;
-        public decimal TotalPrice => (UnitPrice - Discount) * Quantity;
+        public decimal TotalPrice => (UnitPrice - (UnitPrice * (Discount / 100m))) * Quantity;
     }
 }

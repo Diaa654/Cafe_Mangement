@@ -81,6 +81,11 @@ namespace Service
             }
         }
 
+        public Task<Result<IEnumerable<TableDetailsDto>>> GetTablesWithDetails()
+        {
+            throw new NotImplementedException();
+        }
+
         public async Task<Result> UpdateTableAvailability(int tableId, bool isAvailable)
         {
             try
@@ -103,6 +108,20 @@ namespace Service
                 _logger.LogError(ex, $"Error updating availability for table {tableId}...");
                 return Error.Failure("فشل_النظام", "حدث خطأ أثناء تغيير حالة الطاولة.");
             }
+        }
+        public async Task<Result<IEnumerable<TableDetailsDto>>> GetAllTablesWithDetails(int userId)
+        {
+            var user = await _unitOfWork.GetRepository<User, int>().GetByIdAsync(userId);
+            if (user == null)
+                return Error.Failure("User Not Found", "المستخدم غير موجود.");
+            if (!user.IsActive)
+                return Error.Failure("User Inactive", "لا يمكنك إجراء أي نشاط في الشيفت الحالي");
+            var spec =new TableWithDetailsSpecifications();
+            var repository = _unitOfWork.GetRepository<Table, int>();
+            var tables = await repository.GetAllAsync(spec);
+            var tablesWithDetailsDto = _mapper.Map<IEnumerable<TableDetailsDto>>(tables);
+            return Result<IEnumerable<TableDetailsDto>>.Ok(tablesWithDetailsDto);
+            
         }
     }
 }

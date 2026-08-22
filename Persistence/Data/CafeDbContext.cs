@@ -46,17 +46,22 @@ namespace Persistence.Data
                 .WithOne()
                 .HasForeignKey(osl => osl.UserId)
                 .OnDelete(DeleteBehavior.NoAction);
+            builder.Entity<User>()
+                .HasMany(u => u.OrderStatusLog)
+                .WithOne(osl => osl.User)
+                .HasForeignKey(osl => osl.UserId)
+                .OnDelete(DeleteBehavior.NoAction);
 
             #endregion
 
             #region Invoice
             builder.Entity<Invoice>()
-                    .HasOne<Table>()
+                    .HasOne(i => i.Table)
                     .WithMany()
                     .HasForeignKey(i => i.TableId);
             builder.Entity<Invoice>()
                 .HasMany(i => i.Orders)
-                .WithOne()
+                .WithOne(o => o.Invoice)
                 .HasForeignKey(o => o.InvoiceId)
                 .OnDelete(DeleteBehavior.Cascade);
             #endregion
@@ -83,6 +88,14 @@ namespace Persistence.Data
                 .WithOne()
                 .HasForeignKey(osl => osl.OrderId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            #endregion
+            #region Table
+            builder.Entity<Table>()
+                    .HasMany(t => t.Invoices)
+                    .WithOne(i => i.Table)
+                    .HasForeignKey(i => i.TableId)
+                    .OnDelete(DeleteBehavior.NoAction);
             #endregion
 
 

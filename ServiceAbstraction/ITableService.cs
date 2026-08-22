@@ -14,5 +14,6 @@ namespace ServiceAbstraction
         Task<Result<IEnumerable<GetAllTableDTO>>> GetAllTableAvailablesAsync();
         Task<Result> AddTable();
         Task<Result> UpdateTableAvailability(int tableId, bool isAvailable);
+        Task<Result<IEnumerable<TableDetailsDto>>> GetAllTablesWithDetails(int userId);
     }
 }
