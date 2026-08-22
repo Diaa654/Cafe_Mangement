@@ -13,6 +13,7 @@ namespace Domain.Models
         public decimal TotalAmount { get; set; }
         public int UserId { get; set; }
         public int TableId { get; set; }
+        public Table Table { get; set; } = default!;
         public User User { get; set; } = default!;
         public ICollection<Order> Orders { get; set; } = new List<Order>();
 
