@@ -15,12 +15,12 @@ using System.Threading.Tasks;
 
 namespace Service
 {
-    public class ProductService(IUnitOfWork _unitOfWork, IFileService _fileService,IMapper _mapper,ILogger _logger) : IProductService
+    public class ProductService(IUnitOfWork _unitOfWork, IFileService _fileService,IMapper _mapper/*,ILogger<ProductService> _logger*/) : IProductService
     {
         public async Task<Result> AddAsync(AddProductDTO dto)
         {
             if (dto == null || string.IsNullOrWhiteSpace(dto.Name) || dto.Price <= 0 || dto.CategoryId <=0 || dto.Image == null)
-                return Error.Validation("بيانات_غير_صالحة", "تأكد من إدخال اسم المنتج، السعر، القسم، وإرفاق صورة صالحة.");
+                return Error.Validation("بيانات_غير_صالحة", " تأكد من إدخال اسم المنتج، السعر، وإرفاق صورة صالحةوتحديد الفئه التي ينتمي اليها المنتج");
             string? uploadedFilePath = null;
 
             async Task RevertChangesAsync()
@@ -50,42 +50,34 @@ namespace Service
             catch (Exception ex)
             {
                 await RevertChangesAsync();
-                _logger.LogError(ex, "Error while adding a new Product with Image...");
+               // _logger.LogError(ex, "Error while adding a new Product with Image...");
                 return Error.Failure("خطأ_غير_متوقع", "حدث خطأ غير متوقع أثناء إضافة المنتج.");
             }
         }
 
         public async Task<Result> DeleteAsync(int ProductId)
         {
-            try
+
+            var repository = _unitOfWork.GetRepository<Product, int>();
+
+
+            var product = await repository.GetByIdAsync(ProductId);
+            if (product == null)
+                return Error.NotFound("غير_موجود", "المنتج المطلوب حذفه غير موجود.");
+
+            repository.Remove(product);
+            await _unitOfWork.SaveChangesAsync();
+            if (!string.IsNullOrEmpty(product.ImageUrl))
             {
-                var repository = _unitOfWork.GetRepository<Product, int>();
-
-               
-                var product = await repository.GetByIdAsync(ProductId);
-                if (product == null)
-                    return Error.NotFound("غير_موجود", "المنتج المطلوب حذفه غير موجود.");
-
-                repository.Remove(product);
-                await _unitOfWork.SaveChangesAsync();
-                if (!string.IsNullOrEmpty(product.ImageUrl))
-                {
-                    await _fileService.DeleteAsync(product.ImageUrl);
-                }
-
-                return Result.Ok();
+                await _fileService.DeleteAsync(product.ImageUrl);
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Error while deleting product with ID {ProductId}...");
-                return Error.Failure("فشل_النظام", "حدث خطأ أثناء حذف المنتج. قد يكون مرتبطاً بطلبات سابقة.");
-            }
+
+            return Result.Ok();
         }
 
         public async Task<Result<IEnumerable<GetAllProductDTO>>> GetProductsByCategoryAsync(int categoryId)
         {
-            try
-            {
+           
                 var repository = _unitOfWork.GetRepository<Product, int>();
 
                 var sp=new ProductSpecification(categoryId);
@@ -93,19 +85,13 @@ namespace Service
                 var dtos = _mapper.Map<IEnumerable<GetAllProductDTO>>(allProducts);
 
                 return Result<IEnumerable<GetAllProductDTO>>.Ok(dtos);
-            }
-            catch (Exception ex)
-            {
-               
-                _logger.LogError(ex, $"Error while getting products for category {categoryId}...");
-                return Error.Failure("فشل_النظام", "حدث خطأ أثناء جلب منتجات القسم المطلوب.");
-            }
+           
+           
         }
 
         public async Task<Result> UpdateAvailabilityAsync(int productId, bool isAvailable)
         {
-            try
-            {
+           
                 var repository = _unitOfWork.GetRepository<Product, int>();
 
                 var product = await repository.GetByIdAsync(productId);
@@ -117,12 +103,7 @@ namespace Service
                 await _unitOfWork.SaveChangesAsync();
 
                 return Result.Ok();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Error updating availability for product {productId} to {isAvailable}...");
-                return Error.Failure("فشل_النظام", "حدث خطأ أثناء تغيير حالة توفر المنتج.");
-            }
+            
         }
 
         public async Task<Result> UpdateAsync(int ProductId, UpdateProductDto dto)
@@ -130,8 +111,7 @@ namespace Service
             if (dto == null || string.IsNullOrWhiteSpace(dto.Name) || dto.Price <= 0)
                 return Error.Validation("بيانات_غير_صالحة", "تأكد من إدخال اسم المنتج بشكل صحيح وأن السعر أكبر من صفر.");
 
-            try
-            {
+           
                 var repository = _unitOfWork.GetRepository<Product, int>();
               
                 var product = await repository.GetByIdAsync(ProductId);
@@ -147,13 +127,7 @@ namespace Service
                 await _unitOfWork.SaveChangesAsync();
 
                 return Result.Ok();
-            }
-            catch (Exception ex)
-            {
-               
-                _logger.LogError(ex, $"Error while updating product with ID {ProductId}...");
-                return Error.Failure("فشل_النظام", "حدث خطأ غير متوقع أثناء تعديل بيانات المنتج.");
-            }
+           
         }
 
         public async Task<Result> UpdateDiscountAsync(int productId, decimal newDiscount)
@@ -161,8 +135,7 @@ namespace Service
             if (newDiscount < 0 || newDiscount > 100)
                 return Error.Validation("قيمة_مرفوضة", "نسبة الخصم يجب أن تكون بين 0 و 100.");
 
-            try
-            {
+           
                 var repository = _unitOfWork.GetRepository<Product, int>();
 
                 var product = await repository.GetByIdAsync(productId);
@@ -176,12 +149,7 @@ namespace Service
                 await _unitOfWork.SaveChangesAsync();
 
                 return Result.Ok();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Error updating discount for product {productId}...");
-                return Error.Failure("فشل_النظام", "حدث خطأ أثناء تعديل خصم المنتج.");
-            }
+           
         }
 
         public async Task<Result> UpdateImageProductAsync(int productId, IFormFile image)
@@ -236,31 +204,23 @@ namespace Service
             
                 await RevertUploadAsync();
 
-                _logger.LogError(ex, $"Error updating image for product {productId}...");
+               // _logger.LogError(ex, $"Error updating image for product {productId}...");
                 return Error.Failure("خطأ_غير_متوقع", "حدث خطأ غير متوقع أثناء تحديث صورة المنتج.");
             }
         }
 
         public async Task<Result<IEnumerable<GetTopProductDTO>>> GetTopProductsAsync()
         {
-            try
-            {
+            
                 var repository = _unitOfWork.GetRepository<Product, int>();
 
                 var sp = new ProductSpecification();
                 var allProducts = await repository.GetAllAsync(sp);
-
-
                 
                 var dtos = _mapper.Map<IEnumerable<GetTopProductDTO>>(allProducts);
 
                 return Result<IEnumerable<GetTopProductDTO>>.Ok(dtos);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error while getting top selling products...");
-                return Error.Failure("فشل_النظام", "حدث خطأ أثناء جلب المنتجات الأكثر طلباً.");
-            }
+           
         }
     }
 }
