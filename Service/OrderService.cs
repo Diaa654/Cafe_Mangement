@@ -21,7 +21,7 @@ using OrderStatus = Shared.DTOS.InvoiceDto.OrderStatus;
 namespace Service
 {
     public class OrderService(IUnitOfWork _unitOfWork, IMapper _mapper,IFcmService _fcmService
-        , UserManager<User> userManager,ILogger _logger) : IOrderService
+        , UserManager<User> userManager/*,ILogger _logger*/) : IOrderService
     {
         public async Task<Result<string>> CreateOrderAsync(int invoiceId, int waiterId, CreateOrderDto orderDto)
         {

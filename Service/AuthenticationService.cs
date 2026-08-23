@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using ServiceAbstraction;
 using Shared;
@@ -22,6 +23,42 @@ namespace Service
     public class AuthenticationService(UserManager<User> _userManager
         , IConfiguration _configuration,IServiceManger _serviceManger) : IAuthenticationService
     {
+        public async Task<Result> ActiveUser(int id, bool isActive) 
+        {
+            
+                var user = await _userManager.Users.FirstOrDefaultAsync(u => u.Id == id);
+
+                if (user == null)
+                {
+                    return Error.NotFound("UserNotFound", "المستخدم غير موجود بالأنظمة.");
+                }
+
+                user.IsActive = isActive;
+                var result = await _userManager.UpdateAsync(user);
+
+                if (!result.Succeeded)
+                {
+                    return Error.Failure("UpdateFailed", "حدث خطأ أثناء تحديث الحالة.");
+                }
+
+                return Result.Ok();
+           
+        }
+
+        public async Task<Result<IEnumerable<GetAllUserDTO>>> GetAllUserAsync() 
+        {
+           
+                var users = await _userManager.Users
+                    .Select(u => new GetAllUserDTO
+                    {
+                        FuName = u.FullName,
+                        Email = u.Email!,
+                        IsActive = u.IsActive
+                    })
+                    .ToListAsync();
+
+                return Result<IEnumerable<GetAllUserDTO>>.Ok(users);
+        }
         public async Task<Result<UserDto>> LoginAsync(LoginDto loginDto)
         {
             var user = await _userManager.Users
