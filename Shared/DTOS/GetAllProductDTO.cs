@@ -8,10 +8,12 @@ namespace Shared.DTOS
 {
     public class GetAllProductDTO
     {
+        public int Id { get; set; }
         public string Name { get; set; }
         public decimal PriceAfterDiscount { get; set; }
         public bool IsDiscount { get; set; }
         public decimal Discount { get; set; }
         public string ImageURL { get; set; }
+        public bool IsAvailable { get; set; }
     }
 }
