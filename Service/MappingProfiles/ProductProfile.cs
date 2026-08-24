@@ -28,7 +28,9 @@ namespace Service.MappingProfiles
             .ForMember(dest => dest.PriceAfterDiscount, opt => opt.MapFrom(src =>
                 src.Discount > 0
                     ? (src.Price - (src.Price * (src.Discount / 100m)))
-                    : src.Price));
+                    : src.Price))
+                        .ForMember(dest => dest.IsAvailable, opt => opt.MapFrom(src => src.IsAvailable))
+                        .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id));
 
             CreateMap<Product, GetTopProductDTO>()
               .ForMember(dest => dest.ImageUrl, opt => opt.MapFrom<URLResolver<Product, GetTopProductDTO>, string?>(src => src.ImageUrl))
