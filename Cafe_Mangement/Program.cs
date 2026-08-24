@@ -43,7 +43,7 @@ namespace Cafe_Management
             builder.Services.AddScoped<IFileService, FileService>();
             builder.Services.AddScoped<IFcmService, FcmService>();
             builder.Services.AddScoped<ICacheRepository, CacheRepository>();
-            builder.Services.AddScoped<IDashboardService, DashboardService>();
+            builder.Services.AddScoped<IDashboardService, DashboardService>(); 
             builder.Services.AddScoped<IDashboardNotificationService, DashboardNotificationService>();
             var redisConnectionString = builder.Configuration.GetConnectionString("RedisConnection");
             builder.Services.AddSignalR();
@@ -116,7 +116,7 @@ namespace Cafe_Management
             app.UseRouting();
             app.UseCors("AllowSignalR");
             app.UseHttpsRedirection();
-
+            app.UseStaticFiles();
             app.UseAuthentication();
             app.UseAuthorization();
 

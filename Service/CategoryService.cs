@@ -12,15 +12,14 @@ using System.Threading.Tasks;
 
 namespace Service
 {
-    public class CategoryService(IUnitOfWork _unitOfWork,ILogger _logger) : ICategoryService
+    public class CategoryService(IUnitOfWork _unitOfWork) : ICategoryService
     {
         public async Task<Result> AddAsync(CategoryDTO dto)
         {
             if (dto == null)
                 return Error.Validation("يجب ادخال البيانات ","يجب ادخال البيانات ");
 
-            try
-            {
+          
                 var Category = new Category()
                 {
                     Name = dto.Name,
@@ -28,38 +27,27 @@ namespace Service
                 await _unitOfWork.GetRepository<Category, int>().AddAsync(Category);
                 await _unitOfWork.SaveChangesAsync();
                 return Result.Ok();
-            }
-            catch(Exception ex)
-            {
-                _logger.LogError(ex, ex.Message);
-                return Error.Failure("فشل_النظام", ex.Message);
-            }
+            
 
         }
 
         public async Task<Result<IEnumerable<CategoryDTO>>> GetAllCategoriesAsync()
         {
-            try
-            {
+          
                 var categories = await _unitOfWork.GetRepository<Category, int>().GetAllAsync();
                 var dtos = categories.Select(c => new CategoryDTO
                 {
-                    Name = c.Name
-                    
+                    Name = c.Name,
+                    ID= c.Id
+
                 });
 
                 return Result<IEnumerable<CategoryDTO>>.Ok(dtos);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error while getting all categories...");
-                return Error.Failure("فشل_النظام", "حدث خطأ أثناء جلب الأقسام.");
-            }
+           
         }
         public async Task<Result> DeleteAsync(int categoryId)
         {
-            try
-            {
+            
                 var repository = _unitOfWork.GetRepository<Category, int>();
                 var existingCategory = await repository.GetByIdAsync(categoryId);
 
@@ -70,12 +58,7 @@ namespace Service
                 await _unitOfWork.SaveChangesAsync();
 
                 return Result.Ok();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Error while deleting category with ID {categoryId}...");
-                return Error.Failure("فشل_النظام", "حدث خطأ أثناء حذف القسم. تأكد أنه غير مرتبط بمنتجات أخرى.");
-            }
+           
         }
 
         public async Task<Result> UpdateAsync(int categoryId, CategoryDTO dto)
@@ -83,8 +66,7 @@ namespace Service
             if (dto == null || string.IsNullOrWhiteSpace(dto.Name))
                 return Error.Validation("يجب ادخال البيانات", "اسم القسم مطلوب.");
 
-            try
-            {
+           
                 var repository = _unitOfWork.GetRepository<Category, int>();
                 var existingCategory = await repository.GetByIdAsync(categoryId);
 
@@ -98,12 +80,7 @@ namespace Service
                 await _unitOfWork.SaveChangesAsync();
 
                 return Result.Ok();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Error while updating category with ID {categoryId}...");
-                return Error.Failure("فشل_النظام", "حدث خطأ أثناء تعديل بيانات القسم.");
-            }
+           
         }
     }
 }
