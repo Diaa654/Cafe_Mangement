@@ -12,5 +12,8 @@ namespace ServiceAbstraction
     {
         Task<Result<UserDto>> LoginAsync(LoginDto loginDto);
         Task<Result<string>> SaveDeviceTokenAsync(SaveDeviceTokenDto dto);
+
+        Task<Result<IEnumerable<GetAllUserDTO>>> GetAllUserAsync();
+        Task<Result> ActiveUser(int id, bool isActive);
     }
 }
