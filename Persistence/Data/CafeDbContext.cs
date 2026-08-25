@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Emit;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -57,8 +58,9 @@ namespace Persistence.Data
             #region Invoice
             builder.Entity<Invoice>()
                     .HasOne(i => i.Table)
-                    .WithMany()
-                    .HasForeignKey(i => i.TableId);
+                    .WithMany(t => t.Invoices)
+                    .HasForeignKey(i => i.TableId)
+                    .OnDelete(DeleteBehavior.NoAction);
             builder.Entity<Invoice>()
                 .HasMany(i => i.Orders)
                 .WithOne(o => o.Invoice)
@@ -75,6 +77,9 @@ namespace Persistence.Data
                 .HasMany(p => p.OrderItems)
                 .WithOne(oi => oi.Product)
                 .HasForeignKey(oi => oi.ProductId);
+            builder.Entity<Product>()
+                .Property(p => p.Price)
+                .HasColumnType("decimal(18,2)");
             #endregion
 
             #region Order
