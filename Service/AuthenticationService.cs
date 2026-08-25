@@ -47,17 +47,25 @@ namespace Service
 
         public async Task<Result<IEnumerable<GetAllUserDTO>>> GetAllUserAsync() 
         {
-           
-                var users = await _userManager.Users
-                    .Select(u => new GetAllUserDTO
-                    {
-                        FuName = u.FullName,
-                        Email = u.Email!,
-                        IsActive = u.IsActive
-                    })
-                    .ToListAsync();
 
-                return Result<IEnumerable<GetAllUserDTO>>.Ok(users);
+            var users = await _userManager.Users.ToListAsync();
+            var userDtos = new List<GetAllUserDTO>();
+            foreach (var u in users)
+            {
+                var roles = await _userManager.GetRolesAsync(u);
+                if(roles.Contains(AppRoles.Admin.ToString()))
+                    continue;
+                userDtos.Add(new GetAllUserDTO
+                {
+                    Id = u.Id,
+                    FuName = u.FullName,
+                    Email = u.Email!,
+                    Role = roles.FirstOrDefault() ?? "بدون صلاحية",
+                    IsActive = u.IsActive
+                });
+            }
+
+            return Result<IEnumerable<GetAllUserDTO>>.Ok(userDtos);
         }
         public async Task<Result<UserDto>> LoginAsync(LoginDto loginDto)
         {

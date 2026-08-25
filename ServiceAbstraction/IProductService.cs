@@ -17,7 +17,7 @@ namespace ServiceAbstraction
         Task<Result> UpdateDiscountAsync(int productId, decimal newDiscount);
         Task<Result> UpdateAvailabilityAsync(int productId, bool isAvailable);
         Task<Result> UpdateImageProductAsync(int productId, IFormFile image);
-        Task<Result<IEnumerable<GetAllProductDTO>>> GetProductsByCategoryAsync(int categoryId);
+        Task<Result<IEnumerable<GetAllProductDTO>>> GetProductsByCategoryAsync(int userId, int categoryId);
 
         Task<Result<IEnumerable<GetTopProductDTO>>> GetTopProductsAsync();
 
