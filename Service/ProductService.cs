@@ -2,6 +2,8 @@
 using Domain.Contracts;
 using Domain.Models;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Service.Specifications;
 using ServiceAbstraction;
@@ -15,7 +17,7 @@ using System.Threading.Tasks;
 
 namespace Service
 {
-    public class ProductService(IUnitOfWork _unitOfWork, IFileService _fileService,IMapper _mapper/*,ILogger<ProductService> _logger*/) : IProductService
+    public class ProductService(IUnitOfWork _unitOfWork, IFileService _fileService,IMapper _mapper,UserManager<User> _userManager) : IProductService
     {
         public async Task<Result> AddAsync(AddProductDTO dto)
         {
@@ -75,11 +77,14 @@ namespace Service
             return Result.Ok();
         }
 
-        public async Task<Result<IEnumerable<GetAllProductDTO>>> GetProductsByCategoryAsync(int categoryId)
+        public async Task<Result<IEnumerable<GetAllProductDTO>>> GetProductsByCategoryAsync(int userId, int categoryId)
         {
-           
+                var user = await _userManager.Users.FirstOrDefaultAsync(u => u.Id == userId);
+                 if (user == null)
+                    return Error.NotFound("غير_موجود", "المستخدم المطلوب غير موجود في النظام.");
+                if(!user.IsActive)
+                    return Error.Forbidden("غير_مفعل", "المستخدم غير مفعل، يرجى التواصل مع الإدارة لتفعيل الحساب.");
                 var repository = _unitOfWork.GetRepository<Product, int>();
-
                 var sp=new ProductSpecification(categoryId);
                 var allProducts = await repository.GetAllAsync(sp);
                 var dtos = _mapper.Map<IEnumerable<GetAllProductDTO>>(allProducts);

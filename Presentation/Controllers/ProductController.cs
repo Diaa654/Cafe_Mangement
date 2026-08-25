@@ -54,7 +54,8 @@ namespace Presentation.Controllers
         [HttpGet("GetProductsByCategory/{categoryId}")]
         public async Task<ActionResult<IEnumerable<GetAllProductDTO>>> GetProductsByCategory(int categoryId)
         {
-            var result = await serviceManger.ProductService.GetProductsByCategoryAsync(categoryId);
+            int userId = GetUserId();
+            var result = await serviceManger.ProductService.GetProductsByCategoryAsync(userId, categoryId);
             return HandleResult(result);
         }
         [Authorize(Roles = nameof(AppRoles.Admin))]

@@ -22,7 +22,7 @@ namespace Service
         private readonly Lazy<ITableService> _LazyTableService = new Lazy<ITableService>(() => new TableService(_unitOfWork, _mapper));
         public ITableService TableService => _LazyTableService.Value;
 
-        private readonly Lazy<IProductService> _LazyProductService = new Lazy<IProductService>(() => new ProductService(_unitOfWork,_fileService, _mapper));
+        private readonly Lazy<IProductService> _LazyProductService = new Lazy<IProductService>(() => new ProductService(_unitOfWork,_fileService, _mapper, _userManager));
         public IProductService ProductService => _LazyProductService.Value;
 
         private readonly Lazy<ICategoryService> _LazyCategoryService = new Lazy<ICategoryService>(() => new CategoryService(_unitOfWork));
