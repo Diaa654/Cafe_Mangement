@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 namespace Presentation.Controllers
 {
    // [Authorize(Roles = nameof(AppRoles.Admin))]
-    public class AdminController(IServiceManger serviceManger,IDashboardService _dashboardService, IAuthenticationService _authenticationService) : ApiBaseController
+    public class AdminController(IDashboardService _dashboardService, IAuthenticationService _authenticationService) : ApiBaseController
     {
 
         #region DashboardData
