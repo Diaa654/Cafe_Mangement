@@ -188,7 +188,6 @@ namespace Service
 
             return Result<string>.Ok("تم تغيير حالة الطلب بنجاح.");
         }
-
         public async Task<Result<IEnumerable<OrderBasicDto>>> GetActiveOrdersForBaristaAsync(int UserId)
         {
             var user = await _unitOfWork.GetRepository<User, int>().GetByIdAsync(UserId);

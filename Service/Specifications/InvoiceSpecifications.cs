@@ -16,7 +16,7 @@ namespace Service.Specifications
         public InvoiceSpecifications(int TableId) : base(i => i.TableId == TableId && i.Status == InvoiceStatus.Pending)
         {
             AddInclude(i => i.User);
-            AddComplexInclude(q => q.Include(i => i.Orders).ThenInclude(o => o.OrderItems));
+            AddComplexInclude(q => q.Include(i => i.Orders).ThenInclude(o => o.OrderItems).ThenInclude(oi => oi.Product));
 
         }
         public InvoiceSpecifications(InvoiceSpecParams specParams) : base(i =>

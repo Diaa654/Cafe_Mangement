@@ -63,7 +63,7 @@ namespace Presentation.Controllers
             return HandleResult(result);
         }
         [HttpPost("CancelOrderWithId/{OrderId}")]
-        [Authorize(Roles = nameof(AppRoles.Waiter))]
+        [Authorize(Roles = nameof(AppRoles.Waiter) + "," + nameof(AppRoles.Barista))]
         public async Task<ActionResult<string>> CancelOrder(int OrderId)
         {
             int UserId=GetUserId();

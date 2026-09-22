@@ -31,14 +31,14 @@ namespace Service
             var tableRepo= _unitOfWork.GetRepository<Table,int>();
             var user =await userRepo.GetByIdAsync(userId);
             if(user == null)
-                return Error.Failure("User not found","الويتر غير موجود فى قاعدة البيانات");
+                return Error.Failure("User not found","الحساب غير موجود فى قاعدة البيانات");
             if(!user.IsActive)
-                return Error.Failure("User is not active","الويتر غير مفعل حاليا");
+                return Error.Failure("User is not active","الحساب غير مفعل حاليا");
             var userRoles = (await _userManager.GetRolesAsync(user)).ToList();
-            if (!userRoles.Contains("Waiter"))
-                return Error.Failure("User is not a waiter","غير مسموح ليك بانشاء فاتورة");
+            //if (!userRoles.Contains("Waiter"))
+            //    return Error.Failure("User is not a waiter","غير مسموح ليك بانشاء فاتورة");
             if (!user.IsActive)
-                return Error.Failure("User is not active","الويتر غير مفعل حاليا");
+                return Error.Failure("User is not active","الحساب غير مفعل حاليا");
             var table =await tableRepo.GetByIdAsync(tableId);
             if(table == null)
                 return Error.Failure("Table not found","رقم الطاولة غير صحيح");
@@ -46,8 +46,8 @@ namespace Service
                 return Error.Failure("Table is not available","الطاولة غير متاحة حاليا");
             var invoiceSpec= new InvoiceSpecifications(tableId);
             var invoiceRepo= _unitOfWork.GetRepository<Invoice,int>();
-            var existingInvoice = invoiceRepo.GetByIdAsync(invoiceSpec);
-            if(existingInvoice==null)
+            var existingInvoice =await invoiceRepo.GetByIdAsync(invoiceSpec);
+            if(existingInvoice!=null)
                 return Error.Failure("Invoice already exists", "يوجد فاتورة مفتوحة لهذه الطاولة بالفعل");
             var newInvoice = new Invoice
             {
