@@ -50,7 +50,7 @@ namespace Presentation.Controllers
             var result = await serviceManger.ProductService.UpdateImageProductAsync(id, image);
             return HandleResult(result);
         }
-        [Authorize(Roles = nameof(AppRoles.Waiter) + "," + nameof(AppRoles.Admin))]
+        [Authorize(Roles = nameof(AppRoles.Waiter) + "," + nameof(AppRoles.Admin)+","+nameof(AppRoles.Barista))]
         [HttpGet("GetProductsByCategory/{categoryId}")]
         public async Task<ActionResult<IEnumerable<GetAllProductDTO>>> GetProductsByCategory(int categoryId)
         {
@@ -66,7 +66,7 @@ namespace Presentation.Controllers
             return HandleResult(result);
         }
         #endregion
-        [Authorize(Roles = nameof(AppRoles.Barista))]
+        [Authorize(Roles = nameof(AppRoles.Admin))]
         #region Product
         [HttpPatch("UpdateAvailabilityProduct/{id}")]
         public async Task<IActionResult> UpdateAvailability(int id, [FromQuery] bool isAvailable)

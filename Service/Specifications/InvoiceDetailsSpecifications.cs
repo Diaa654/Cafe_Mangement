@@ -13,7 +13,7 @@ namespace Service.Specifications
         public InvoiceDetailsSpecifications(int invoiceId) : base(i => i.Id == invoiceId)
         {
             AddInclude(i => i.User);
-            AddComplexInclude(q => q.Include(i => i.Orders).ThenInclude(o => o.OrderItems));
+           // AddComplexInclude(q => q.Include(i => i.Orders).ThenInclude(o => o.OrderItems));
             AddComplexInclude(q => q.Include(i => i.Orders).ThenInclude(o => o.StatusLogs));
             AddComplexInclude(q => q.Include(i => i.Orders).ThenInclude(o => o.OrderItems).ThenInclude(oi => oi.Product));
 

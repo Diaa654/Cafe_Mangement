@@ -21,7 +21,7 @@ namespace Service
     {
         public async Task<Result> AddAsync(AddProductDTO dto)
         {
-            if (dto == null || string.IsNullOrWhiteSpace(dto.Name) || dto.Price <= 0 || dto.CategoryId <=0 || dto.Image == null)
+            if (dto == null || string.IsNullOrWhiteSpace(dto.Name) || dto.Price <= 0 || dto.CategoryId <=0 )
                 return Error.Validation("بيانات_غير_صالحة", " تأكد من إدخال اسم المنتج، السعر، وإرفاق صورة صالحةوتحديد الفئه التي ينتمي اليها المنتج");
             string? uploadedFilePath = null;
 
@@ -34,12 +34,16 @@ namespace Service
             }
             try
             {
-                var uploadResult = await _fileService.SaveFileAsync(dto.Image, "ProductImage");
+                
+                if(dto.Image is not null)
+                {
+                    var uploadResult = await _fileService.SaveFileAsync(dto.Image, "ProductImage");
 
-                if (!uploadResult.IsSuccess)
-                    return Error.Failure("حدث خطأ اثناء حفظ الصوره ", "حاول ترفع صوره اخرى ");
+                    if (!uploadResult.IsSuccess)
+                        return Error.Failure("حدث خطأ اثناء حفظ الصوره ", "حاول ترفع صوره اخرى ");
 
-                uploadedFilePath = uploadResult.Value;
+                    uploadedFilePath = uploadResult.Value;
+                }
 
                 var product = _mapper.Map<Product>(dto);
                 product.ImageUrl = uploadedFilePath;
