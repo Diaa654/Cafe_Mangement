@@ -13,7 +13,7 @@ namespace Domain.Models
         public decimal Price { get; set; }
         public bool IsAvailable { get; set; } = true;
         public decimal Discount { get; set; }
-        public string ImageUrl { get; set; } = default!;
+        public string? ImageUrl { get; set; } = default!;
         public int NumberOfSales { get; set; } = 0;
         public int CategoryId { get; set; }
         public Category Category { get; set; } = default!;

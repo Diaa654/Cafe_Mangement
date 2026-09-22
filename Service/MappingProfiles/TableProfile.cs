@@ -14,20 +14,27 @@ namespace Service.MappingProfiles
         public TableProfile()
         {
             CreateMap<Table, TableDetailsDto>()
-                .ForMember(dest => dest.TableId, opt => opt.MapFrom(src => src.Id))
+    .ForMember(dest => dest.TableId, opt => opt.MapFrom(src => src.Id))
+    .ForMember(dest=>dest.InvoiceId,opt=>opt.MapFrom(src=>
+        src.Invoices.Select(invoice => invoice.Id).FirstOrDefault()
+    ))
 
-               .ForMember(dest => dest.TotalAmount, opt => opt.MapFrom(src =>
-                    src.Invoices
-                        .Select(i => i.TotalAmount)
-                        .FirstOrDefault()
-                ))
-                .ForMember(dest => dest.OrderStatus, opt => opt.MapFrom(src =>
-                    src.Invoices
-                        .SelectMany(i => i.Orders) 
-                        .OrderByDescending(o => o.Id) 
-                        .Select(o => o.Status.ToString())
-                        .FirstOrDefault() ?? (src.IsAvailable ? "متاحة" : "لا توجد طلبات")
-                ));
+    .ForMember(dest => dest.TotalAmount, opt => opt.MapFrom(src =>
+        src.Invoices
+            .Where(i => i.Status == InvoiceStatus.Pending) 
+            .Select(i => i.TotalAmount)
+            .FirstOrDefault()
+    ))
+
+    
+    .ForMember(dest => dest.OrderStatus, opt => opt.MapFrom(src =>
+        src.Invoices
+            .Where(i => i.Status == InvoiceStatus.Pending) 
+            .SelectMany(i => i.Orders ?? new List<Order>())
+            .OrderByDescending(o => o.Id)
+            .Select(o => o.Status.ToString())
+            .FirstOrDefault() ?? (src.IsAvailable ? "فارغ" : "غير متاح")//غير متاح يعنى مفيش طلبات على الفاتورة ده
+    ));
         }
     }
 }

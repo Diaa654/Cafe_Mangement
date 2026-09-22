@@ -14,7 +14,7 @@ namespace Shared.DTOS
         public decimal Price { get; set; }
         public bool IsAvailable { get; set; } 
         public decimal Discount { get; set; }
-        public IFormFile Image { get; set; }
+        public IFormFile? Image { get; set; }
         
     }
 }
