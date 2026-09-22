@@ -13,8 +13,8 @@ namespace Presentation.Controllers
 {
     public class TableController(IServiceManger _serviceManager):ApiBaseController
     {
+        [Authorize(Roles = nameof(AppRoles.Waiter) + "," + nameof(AppRoles.Barista))]
         [HttpGet("GetAllTablesWithDetails")]
-        [Authorize(Roles = nameof(AppRoles.Waiter))]
         public async Task<ActionResult<IEnumerable<TableDetailsDto>>> GetAllTablesWithDetails()
         {
             var userId = GetUserId();
